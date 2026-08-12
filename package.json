@@ -1,0 +1,14 @@
+{
+  "name": "heat",
+  "version": "1.0.0",
+  "description": "HEAT token smart contracts",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:hibachi-xyz/heat.git"
+  },
+  "author": "vci@hibachi.xyz",
+  "license": "ISC",
+  "dependencies": {
+    "@layerzerolabs/lz-evm-v1-0.7": "=3.0.168"
+  }
+}
