@@ -24,6 +24,8 @@ contract HEATTest is TestHelperOz5 {
     address public minter;
     uint256 public minterKey;
 
+    address public freezer;
+
     function setUp() public override {
         super.setUp();
 
@@ -32,15 +34,20 @@ contract HEATTest is TestHelperOz5 {
         (defaultAdmin, defaultAdminKey) = makeAddrAndKey("defaultAdmin");
         (initialSupplyHolder, initialSupplyHolderKey) = makeAddrAndKey("initialSupplyHolder");
         (minter, minterKey) = makeAddrAndKey("minter");
+        freezer = makeAddr("freezer");
 
         heatAImpl = new HEAT(endpoints[1]);
         bytes memory heatAInitData = abi.encodeCall(HEAT.initialize, (defaultAdmin, initialSupplyHolder, 1_000));
         heatA = HEAT(address(new ERC1967Proxy(address(heatAImpl), heatAInitData)));
 
         bytes32 minterRole = heatA.MINTER_ROLE();
+        bytes32 freezeRole = heatA.FREEZE_ROLE();
 
         vm.prank(defaultAdmin);
         heatA.grantRole(minterRole, minter);
+
+        vm.prank(defaultAdmin);
+        heatA.grantRole(freezeRole, freezer);
     }
 
     function test_CannotInitializeImplementation() public {
@@ -96,5 +103,33 @@ contract HEATTest is TestHelperOz5 {
 
         assertEq(heatA.allowance(initialSupplyHolder, spender), 100);
         assertEq(heatA.nonces(initialSupplyHolder), nonce + 1);
+    }
+
+    function test_GlobalFreezeWorks() public {
+        address recipient = makeAddr("recipient");
+
+        vm.prank(initialSupplyHolder);
+        heatA.transfer(recipient, 100);
+
+        vm.prank(freezer);
+        heatA.setGlobalFrozen(true);
+
+        vm.prank(initialSupplyHolder);
+        vm.expectRevert();
+        heatA.transfer(recipient, 100);
+    }
+
+    function test_AccountFreezeWorks() public {
+        address recipient = makeAddr("recipient");
+
+        vm.prank(initialSupplyHolder);
+        heatA.transfer(recipient, 100);
+
+        vm.prank(freezer);
+        heatA.setFrozen(recipient, true);
+
+        vm.prank(initialSupplyHolder);
+        vm.expectRevert();
+        heatA.transfer(recipient, 100);
     }
 }
