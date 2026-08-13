@@ -6,14 +6,34 @@ import {AccessControlUpgradeable} from "@openzeppelin/contracts-upgradeable/acce
 import {
     ERC20PermitUpgradeable
 } from "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/ERC20PermitUpgradeable.sol";
+import {
+    ERC20BurnableUpgradeable
+} from "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/ERC20BurnableUpgradeable.sol";
 import {OFTUpgradeable} from "@layerzerolabs/oft-evm-upgradeable/contracts/oft/OFTUpgradeable.sol";
 
-contract HEAT is Initializable, OFTUpgradeable, ERC20PermitUpgradeable, AccessControlUpgradeable {
+/// @title HEAT
+/// @notice ERC-20 token for the Hibachi protocol.
+contract HEAT is
+    Initializable,
+    OFTUpgradeable,
+    ERC20PermitUpgradeable,
+    ERC20BurnableUpgradeable,
+    AccessControlUpgradeable
+{
+    error AddressIsZero();
     error EnforcedGlobalFreeze();
     error EnforcedAccountFreeze(address account);
 
+    /// @notice Emitted when the global freeze flag is flipped.
+    /// @param frozen Whether the current flag is frozen.
     event GlobalFreezeSet(bool frozen);
+
+    /// @notice Emitted when an account is frozen.
+    /// @param account The account that has been frozen.
     event AccountFrozen(address indexed account);
+
+    /// @notice Emitted when an account is unfrozen.
+    /// @param account The account that has been frozen.
     event AccountUnfrozen(address indexed account);
 
     /// @custom:storage-location erc7201:hibachi.storage.HEAT
@@ -39,11 +59,19 @@ contract HEAT is Initializable, OFTUpgradeable, ERC20PermitUpgradeable, AccessCo
         _disableInitializers();
     }
 
+    /// @notice Initializes the contract.
+    /// @param initialAdmin The address that will become the default admin and owner.
+    /// @param initialRecipient The address of the recipient of the initial token supply.
+    /// @param initialSupply The initial token supply.
     function initialize(address initialAdmin, address initialRecipient, uint256 initialSupply) external initializer {
+        require(initialAdmin != address(0), AddressIsZero());
+        require(initialRecipient != address(0), AddressIsZero());
+
         // OFTAppCoreUpgradeable inherits from OwnableUpgradeable but does not set an owner
         __Ownable_init(initialAdmin);
         __OFT_init("HEAT", "HEAT", initialAdmin);
         __ERC20Permit_init("HEAT");
+        __ERC20Burnable_init();
         __AccessControl_init();
 
         // ACL definitions
@@ -53,16 +81,15 @@ contract HEAT is Initializable, OFTUpgradeable, ERC20PermitUpgradeable, AccessCo
         _mint(initialRecipient, initialSupply);
     }
 
-    function globalFrozen() external view returns (bool) {
-        HeatStorage storage $ = _getHeatStorage();
-
-        return $._globalFrozen;
-    }
-
+    /// @notice Mints tokens. Requires MINTER_ROLE.
+    /// @param to The address to receive the minted tokens.
+    /// @param amount The amount of tokens to mint.
     function mint(address to, uint256 amount) external onlyRole(MINTER_ROLE) {
         _mint(to, amount);
     }
 
+    /// @notice Freezes / unfreezes the token globally. Requires FREEZE_ROLE.
+    /// @param frozen Whether the token should be globally frozen.
     function setGlobalFrozen(bool frozen) external onlyRole(FREEZE_ROLE) {
         HeatStorage storage $ = _getHeatStorage();
         if ($._globalFrozen == frozen) return;
@@ -71,6 +98,9 @@ contract HEAT is Initializable, OFTUpgradeable, ERC20PermitUpgradeable, AccessCo
         emit GlobalFreezeSet(frozen);
     }
 
+    /// @notice Freezes / unfreezes a specific account. Requires FREEZE_ROLE.
+    /// @param account The account to freeze / unfreeze.
+    /// @param frozen Whether the token should be globally frozen.
     function setFrozen(address account, bool frozen) external onlyRole(FREEZE_ROLE) {
         HeatStorage storage $ = _getHeatStorage();
 
@@ -82,12 +112,17 @@ contract HEAT is Initializable, OFTUpgradeable, ERC20PermitUpgradeable, AccessCo
         else emit AccountUnfrozen(account);
     }
 
+    /// @notice Retrieves whether the token is globally frozen.
+    /// @return globalFrozen Whether the token is globally frozen.
     function isGlobalFrozen() external view returns (bool) {
         HeatStorage storage $ = _getHeatStorage();
 
         return $._globalFrozen;
     }
 
+    /// @notice Retrieves whether the token is frozen for an account.
+    /// @param account The account.
+    /// @return globalFrozen Whether the token is frozen for an account.
     function isFrozen(address account) public view returns (bool) {
         HeatStorage storage $ = _getHeatStorage();
         return $._globalFrozen || $._frozen[account];
