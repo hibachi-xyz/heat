@@ -109,27 +109,35 @@ contract HEATTest is TestHelperOz5 {
         address recipient = makeAddr("recipient");
 
         vm.prank(initialSupplyHolder);
-        heatA.transfer(recipient, 100);
+        assert(heatA.transfer(recipient, 100));
+
+        assert(!heatA.isGlobalFrozen());
 
         vm.prank(freezer);
         heatA.setGlobalFrozen(true);
 
+        assert(heatA.isGlobalFrozen());
+
         vm.prank(initialSupplyHolder);
         vm.expectRevert();
-        heatA.transfer(recipient, 100);
+        assert(!heatA.transfer(recipient, 100));
     }
 
     function test_AccountFreezeWorks() public {
         address recipient = makeAddr("recipient");
 
         vm.prank(initialSupplyHolder);
-        heatA.transfer(recipient, 100);
+        assert(heatA.transfer(recipient, 100));
+
+        assert(!heatA.isFrozen(recipient));
 
         vm.prank(freezer);
         heatA.setFrozen(recipient, true);
 
+        assert(heatA.isFrozen(recipient));
+
         vm.prank(initialSupplyHolder);
         vm.expectRevert();
-        heatA.transfer(recipient, 100);
+        assert(!heatA.transfer(recipient, 100));
     }
 }

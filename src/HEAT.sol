@@ -17,7 +17,7 @@ contract HEAT is Initializable, OFTUpgradeable, ERC20PermitUpgradeable, AccessCo
     event AccountUnfrozen(address indexed account);
 
     /// @custom:storage-location erc7201:hibachi.storage.HEAT
-    struct HEATStorage {
+    struct HeatStorage {
         bool _globalFrozen;
         mapping(address account => bool) _frozen;
     }
@@ -28,7 +28,7 @@ contract HEAT is Initializable, OFTUpgradeable, ERC20PermitUpgradeable, AccessCo
     // keccak256(abi.encode(uint256(keccak256("hibachi.storage.HEAT")) - 1)) & ~bytes32(uint256(0xff))
     bytes32 private constant HEAT_STORAGE_LOCATION = 0xac15fc679ca03392ee67e2babf286038a2db88c0a3e79bd1fd073d7725dea600;
 
-    function _getHEATStorage() private pure returns (HEATStorage storage $) {
+    function _getHeatStorage() private pure returns (HeatStorage storage $) {
         assembly {
             $.slot := HEAT_STORAGE_LOCATION
         }
@@ -53,12 +53,18 @@ contract HEAT is Initializable, OFTUpgradeable, ERC20PermitUpgradeable, AccessCo
         _mint(initialRecipient, initialSupply);
     }
 
+    function globalFrozen() external view returns (bool) {
+        HeatStorage storage $ = _getHeatStorage();
+
+        return $._globalFrozen;
+    }
+
     function mint(address to, uint256 amount) external onlyRole(MINTER_ROLE) {
         _mint(to, amount);
     }
 
     function setGlobalFrozen(bool frozen) external onlyRole(FREEZE_ROLE) {
-        HEATStorage storage $ = _getHEATStorage();
+        HeatStorage storage $ = _getHeatStorage();
         if ($._globalFrozen == frozen) return;
 
         $._globalFrozen = frozen;
@@ -66,7 +72,7 @@ contract HEAT is Initializable, OFTUpgradeable, ERC20PermitUpgradeable, AccessCo
     }
 
     function setFrozen(address account, bool frozen) external onlyRole(FREEZE_ROLE) {
-        HEATStorage storage $ = _getHEATStorage();
+        HeatStorage storage $ = _getHeatStorage();
 
         bool prev = $._frozen[account];
         if (prev == frozen) return;
@@ -76,13 +82,19 @@ contract HEAT is Initializable, OFTUpgradeable, ERC20PermitUpgradeable, AccessCo
         else emit AccountUnfrozen(account);
     }
 
+    function isGlobalFrozen() external view returns (bool) {
+        HeatStorage storage $ = _getHeatStorage();
+
+        return $._globalFrozen;
+    }
+
     function isFrozen(address account) public view returns (bool) {
-        HEATStorage storage $ = _getHEATStorage();
+        HeatStorage storage $ = _getHeatStorage();
         return $._globalFrozen || $._frozen[account];
     }
 
     function _update(address from, address to, uint256 value) internal virtual override {
-        HEATStorage storage $ = _getHEATStorage();
+        HeatStorage storage $ = _getHeatStorage();
 
         if ($._globalFrozen) revert EnforcedGlobalFreeze();
 
@@ -93,7 +105,7 @@ contract HEAT is Initializable, OFTUpgradeable, ERC20PermitUpgradeable, AccessCo
     }
 
     function _approve(address owner, address spender, uint256 value, bool emitEvent) internal virtual override {
-        HEATStorage storage $ = _getHEATStorage();
+        HeatStorage storage $ = _getHeatStorage();
 
         if ($._globalFrozen) revert EnforcedGlobalFreeze();
 
@@ -104,7 +116,7 @@ contract HEAT is Initializable, OFTUpgradeable, ERC20PermitUpgradeable, AccessCo
     }
 
     function _spendAllowance(address owner, address spender, uint256 value) internal virtual override {
-        HEATStorage storage $ = _getHEATStorage();
+        HeatStorage storage $ = _getHeatStorage();
 
         if ($._globalFrozen) revert EnforcedGlobalFreeze();
 
