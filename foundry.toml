@@ -6,3 +6,40 @@ solc_version = "0.8.35"
 auto_detect_solc = false
 optimizer = true
 optimizer_runs = 200
+# SetupLocalLz imports the REAL LayerZero protocol contracts, which are
+# OZ-v4-era and only compile under the `locallz` profile below.
+skip = ["script/SetupLocalLz.s.sol"]
+
+# Local-node LayerZero stack (real EndpointV2 + ULN302 on anvil) for the
+# Volla bridge integration harness. The vendored LayerZero-v2 protocol
+# contracts predate OZ v5 (no `Ownable(initialOwner)` base call), so this
+# profile context-remaps ONLY that subtree to an OZ v4 copy
+# (`@openzeppelin/contracts-v4` npm alias). The repo's own tests stay on the
+# default profile: TestHelperOz5's devtools mocks are v5-adapted subclasses
+# of the LZ base contracts and cannot compile against the v4 context — hence
+# `test/HEAT.t.sol` is skipped here rather than fought.
+# Build/run with: FOUNDRY_PROFILE=locallz forge script script/SetupLocalLz.s.sol ...
+[profile.locallz]
+src = "src"
+out = "out-locallz"
+libs = ["lib"]
+solc_version = "0.8.35"
+auto_detect_solc = false
+optimizer = true
+optimizer_runs = 200
+via_ir = true
+skip = ["test/HEAT.t.sol"]
+remappings = [
+    "@openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/",
+    "@openzeppelin/contracts-upgradeable/=lib/openzeppelin-contracts-upgradeable/contracts/",
+    "@layerzerolabs/oft-evm/=lib/devtools/packages/oft-evm/",
+    "@layerzerolabs/oapp-evm/=lib/devtools/packages/oapp-evm/",
+    "@layerzerolabs/oft-evm-upgradeable/=lib/devtools/packages/oft-evm-upgradeable/",
+    "@layerzerolabs/oapp-evm-upgradeable/=lib/devtools/packages/oapp-evm-upgradeable/",
+    "@layerzerolabs/lz-evm-protocol-v2/=lib/LayerZero-v2/packages/layerzero-v2/evm/protocol/",
+    "@layerzerolabs/lz-evm-messagelib-v2/=lib/LayerZero-v2/packages/layerzero-v2/evm/messagelib/",
+    "@layerzerolabs/test-devtools-evm-foundry/=lib/devtools/packages/test-devtools-evm-foundry/",
+    "@layerzerolabs/lz-evm-v1-0.7/=node_modules/@layerzerolabs/lz-evm-v1-0.7/",
+    "solidity-bytes-utils/=lib/solidity-bytes-utils/",
+    "lib/LayerZero-v2/:@openzeppelin/contracts/=node_modules/@openzeppelin/contracts-v4/",
+]

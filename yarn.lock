@@ -6,3 +6,8 @@
   version "3.0.168"
   resolved "https://registry.yarnpkg.com/@layerzerolabs/lz-evm-v1-0.7/-/lz-evm-v1-0.7-3.0.168.tgz#50416af1e6d747e0a7912e12e9e2da26c745d87b"
   integrity sha512-JE2Ogs7oKFihIcFhsN4MQ9Q9BSjIXzpYd1hztmeW2khKQOtKI8hqClwB6D252NGW1SB8Rr78RTVCcCSceY8ErA==
+
+"@openzeppelin/contracts-v4@npm:@openzeppelin/contracts@^4.9.6":
+  version "4.9.6"
+  resolved "https://registry.yarnpkg.com/@openzeppelin/contracts/-/contracts-4.9.6.tgz#2a880a24eb19b4f8b25adc2a5095f2aa27f39677"
+  integrity sha512-xSmezSupL+y9VkHZJGDoCBpmnB2ogM13ccaYDWqJTfS3dbuHkgjuwDFUmaFauBCboQMGB/S5UqUl2y54X99BmA==

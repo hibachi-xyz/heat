@@ -18,3 +18,5 @@ node_modules
 
 # IDE
 .idea
+out-locallz/
+broadcast/

@@ -10,5 +10,8 @@
   "license": "ISC",
   "dependencies": {
     "@layerzerolabs/lz-evm-v1-0.7": "=3.0.168"
+  },
+  "devDependencies": {
+    "@openzeppelin/contracts-v4": "npm:@openzeppelin/contracts@^4.9.6"
   }
 }
