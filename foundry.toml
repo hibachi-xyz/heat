@@ -6,3 +6,11 @@ solc_version = "0.8.35"
 auto_detect_solc = false
 optimizer = true
 optimizer_runs = 200
+
+[rpc_endpoints]
+base = "${BASE_RPC_URL}"
+arbitrum = "${ARBITRUM_RPC_URL}"
+
+[etherscan]
+base = { key = "${ETHERSCAN_API_KEY}" }
+arbitrum = { key = "${ETHERSCAN_API_KEY}" }

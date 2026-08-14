@@ -65,7 +65,9 @@ contract HEAT is
     /// @param initialSupply The initial token supply.
     function initialize(address initialAdmin, address initialRecipient, uint256 initialSupply) external initializer {
         require(initialAdmin != address(0), AddressIsZero());
-        require(initialRecipient != address(0), AddressIsZero());
+        if (initialSupply > 0) {
+            require(initialRecipient != address(0), AddressIsZero());
+        }
 
         // OFTAppCoreUpgradeable inherits from OwnableUpgradeable but does not set an owner
         __Ownable_init(initialAdmin);
@@ -78,7 +80,9 @@ contract HEAT is
         _grantRole(DEFAULT_ADMIN_ROLE, initialAdmin);
 
         // mint initial supply
-        _mint(initialRecipient, initialSupply);
+        if (initialSupply > 0) {
+            _mint(initialRecipient, initialSupply);
+        }
     }
 
     /// @notice Mints tokens. Requires MINTER_ROLE.
