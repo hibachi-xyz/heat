@@ -12,7 +12,7 @@ import {NetworkAwareScript} from "./NetworkAwareScript.s.sol";
  * Sets the send library for a specific dst EID.
  * Must be called once for each dst EID.
  */
-contract UpdateLayerZeroSendLib is NetworkAwareScript {
+contract UpdateLayerZeroPeers is NetworkAwareScript {
     error InvalidLzEid();
 
     function run() public {
@@ -33,8 +33,6 @@ contract UpdateLayerZeroSendLib is NetworkAwareScript {
 
         uint256[] memory allChainIds = _allChainIds(_chainId);
 
-        address _sendLib = vm.envAddress(_lzSendLibEnvVar(_chainId));
-
         vm.startBroadcast(_ownerPrivateKey);
 
         for (uint256 i = 0; i < allChainIds.length; i += 1) {
@@ -47,9 +45,11 @@ contract UpdateLayerZeroSendLib is NetworkAwareScript {
             uint32 _dstEid = _lzEid(_dstChainId);
             console2.log("Dst EID", _dstEid);
 
-            _lzEndpoint.setSendLibrary(address(_heat), _dstEid, _sendLib);
+            address _dstHeat = vm.envAddress(_heatEnvVar(_dstChainId));
 
-            console2.log("Updated SendLib to", _sendLib, "for Dst Chain ID", _dstChainId);
+            _heat.setPeer(_dstEid, bytes32(uint256(uint160(_dstHeat))));
+
+            console2.log("Set peer", _dstHeat, "for dst EID", _dstEid);
         }
 
         vm.stopBroadcast();

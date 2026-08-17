@@ -34,16 +34,26 @@ contract UpdateLayerZeroReceiveConfig is NetworkAwareScript {
         }
         console2.log("EID", _eid);
 
-        uint256[] memory allChainIds = _allChainIds();
+        uint256[] memory allChainIds = _allChainIds(_chainId);
 
         address _receiveLib = vm.envAddress(_lzReceiveLibEnvVar(block.chainid));
 
         console2.log("ReceiveLib", _receiveLib);
 
-        address[] memory _requiredDvns = new address[](2);
         address[] memory _optionalDvns = new address[](0);
 
-        {
+        address[] memory _requiredDvns;
+
+        if (_isTestnet(_chainId)) {
+            _requiredDvns = new address[](1);
+
+            address _dvnA = vm.envAddress(_lzDvnAEnvVar(_chainId));
+
+            console2.log("DVN A", _dvnA);
+
+            _requiredDvns[0] = _dvnA;
+        } else {
+            _requiredDvns = new address[](2);
 
             address _dvnA = vm.envAddress(_lzDvnAEnvVar(_chainId));
             address _dvnB = vm.envAddress(_lzDvnBEnvVar(_chainId));
@@ -74,7 +84,7 @@ contract UpdateLayerZeroReceiveConfig is NetworkAwareScript {
 
             UlnConfig memory uln = UlnConfig({
                 confirmations: _confirmations,
-                requiredDVNCount: 2,
+                requiredDVNCount: uint8(_requiredDvns.length),
                 optionalDVNCount: type(uint8).max, // NIL_DVN_COUNT, to override the default (0)
                 optionalDVNThreshold: 0,
                 requiredDVNs: _requiredDvns, // this list MUST be sorted

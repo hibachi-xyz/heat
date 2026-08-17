@@ -31,7 +31,7 @@ contract UpdateLayerZeroReceiveLib is NetworkAwareScript {
         }
         console2.log("EID", _eid);
 
-        uint256[] memory allChainIds = _allChainIds();
+        uint256[] memory allChainIds = _allChainIds(_chainId);
 
         address _receiveLib = vm.envAddress(_lzReceiveLibEnvVar(block.chainid));
         uint256 _gracePeriodSecs = vm.envUint("LZ_RECEIVE_LIB_GRACE_PERIOD_SECS");

@@ -6,9 +6,12 @@ import {Script} from "forge-std/Script.sol";
 abstract contract NetworkAwareScript is Script {
     error UnrecognizedChainId(uint256);
 
-    function _allChainIds() internal view returns (uint256[] memory) {
-        string memory allChainIds = vm.envString("ALL_CHAIN_IDS");
-        return vm.parseJsonUintArray(allChainIds, ".");
+    function _allChainIds(uint256 _chainId) internal view returns (uint256[] memory) {
+        if (_isTestnet(_chainId)) {
+            return vm.parseJsonUintArray(vm.envString("ALL_CHAIN_IDS_TESTNET"), ".");
+        } else {
+            return vm.parseJsonUintArray(vm.envString("ALL_CHAIN_IDS_MAINNET"), ".");
+        }
     }
 
     function _initialSupplyEnvVar(uint256 chainId) internal pure returns (string memory) {
@@ -47,9 +50,20 @@ abstract contract NetworkAwareScript is Script {
         return string(abi.encodePacked("LZ_CONFIRMATIONS_", _networkEnvVarId(chainId)));
     }
 
+    function _isTestnet(uint256 chainId) internal pure returns (bool) {
+        if (chainId == 8453) return false;
+        if (chainId == 42161) return false;
+
+        return true;
+    }
+
     function _lzEid(uint256 chainId) internal pure returns (uint32) {
         if (chainId == 8453) return 30184;
         if (chainId == 42161) return 30110;
+
+        // testnets
+        if (chainId == 84532) return 40245;
+        if (chainId == 11155111) return 40161;
 
         revert UnrecognizedChainId(chainId);
     }
@@ -57,6 +71,10 @@ abstract contract NetworkAwareScript is Script {
     function _networkEnvVarId(uint256 chainId) private pure returns (string memory) {
         if (chainId == 8453) return "BASE";
         if (chainId == 42161) return "ARBITRUM";
+
+        // testnets
+        if (chainId == 84532) return "BASE_SEPOLIA";
+        if (chainId == 11155111) return "SEPOLIA";
 
         revert UnrecognizedChainId(chainId);
     }
