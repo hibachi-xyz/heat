@@ -24,9 +24,11 @@ contract HEAT is
     error EnforcedGlobalFreeze();
     error EnforcedAccountFreeze(address account);
 
-    /// @notice Emitted when the global freeze flag is flipped.
-    /// @param frozen Whether the current flag is frozen.
-    event GlobalFreezeSet(bool frozen);
+    /// @notice Emitted when the token is globally frozen.
+    event GlobalFrozen();
+
+    /// @notice Emitted when the token is globally unfrozen.
+    event GlobalUnfrozen();
 
     /// @notice Emitted when an account is frozen.
     /// @param account The account that has been frozen.
@@ -109,7 +111,8 @@ contract HEAT is
         if ($._globalFrozen == frozen) return;
 
         $._globalFrozen = frozen;
-        emit GlobalFreezeSet(frozen);
+        if (frozen) emit GlobalFrozen();
+        else emit GlobalUnfrozen();
     }
 
     /// @notice Freezes / unfreezes a specific account. Requires FREEZE_ROLE.
@@ -118,8 +121,7 @@ contract HEAT is
     function setFrozen(address account, bool frozen) external onlyRole(FREEZE_ROLE) {
         HeatStorage storage $ = _getHeatStorage();
 
-        bool prev = $._frozen[account];
-        if (prev == frozen) return;
+        if ($._frozen[account] == frozen) return;
 
         $._frozen[account] = frozen;
         if (frozen) emit AccountFrozen(account);
