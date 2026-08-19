@@ -85,6 +85,16 @@ contract HEAT is
         }
     }
 
+    /// @notice Transfers LayerZero ownership and delegate.
+    /// @param newOwner The address of the new owner.
+    function transferOwnership(address newOwner) public override onlyOwner {
+        if (newOwner == address(0)) {
+            revert OwnableInvalidOwner(address(0));
+        }
+        setDelegate(newOwner);
+        _transferOwnership(newOwner);
+    }
+
     /// @notice Mints tokens. Requires MINTER_ROLE.
     /// @param to The address to receive the minted tokens.
     /// @param amount The amount of tokens to mint.

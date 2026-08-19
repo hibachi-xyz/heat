@@ -5,6 +5,7 @@ import {TestHelperOz5} from "@layerzerolabs/test-devtools-evm-foundry/contracts/
 import {SendParam, MessagingFee} from "@layerzerolabs/oft-evm/contracts/interfaces/IOFT.sol";
 import {OptionsBuilder} from "@layerzerolabs/oapp-evm/contracts/oapp/libs/OptionsBuilder.sol";
 import {EnforcedOptionParam} from "@layerzerolabs/oapp-evm/contracts/oapp/interfaces/IOAppOptionsType3.sol";
+import {ILayerZeroEndpointV2} from "@layerzerolabs/lz-evm-protocol-v2/contracts/interfaces/ILayerZeroEndpointV2.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
@@ -81,6 +82,26 @@ contract HEATTest is TestHelperOz5 {
         assertEq(heatA.symbol(), "HEAT");
         assertEq(heatA.decimals(), 18);
         assertEq(heatA.sharedDecimals(), 6);
+    }
+
+    function test_TransfersOwnership() public {
+        address newAdmin = makeAddr("newAdmin");
+        address newPeer = makeAddr("newPeer");
+
+        vm.prank(newAdmin);
+        vm.expectRevert();
+        heatA.setPeer(2, bytes32(uint256(uint160(newPeer))));
+
+        vm.prank(defaultAdmin);
+        heatA.transferOwnership(newAdmin);
+
+        vm.prank(newAdmin);
+        heatA.setPeer(2, bytes32(uint256(uint160(newPeer))));
+
+        (address _receiveLibrary,) = ILayerZeroEndpointV2(endpoints[1]).getReceiveLibrary(address(heatA), 2);
+
+        vm.prank(newAdmin);
+        ILayerZeroEndpointV2(endpoints[1]).setReceiveLibrary(address(heatA), 2, _receiveLibrary, 0);
     }
 
     function test_CanBurn() public {
